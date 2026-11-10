@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Post Smash",
+  "version": "0.1.0",
+  "description": "내가 지정한 게시글/공고만 골라서 완전히 안 보이게 만든다.",
+  "permissions": ["storage", "activeTab"],
+  "action": {
+    "default_title": "Post Smash",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
