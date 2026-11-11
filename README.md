@@ -47,5 +47,4 @@
 
 ## 알려진 한계
 
-- 도메인당 항목 selector를 하나만 저장합니다.
 - 모든 사이트(`<all_urls>`)에서 content script가 실행됩니다.

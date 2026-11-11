@@ -4,9 +4,9 @@
 
   // storage 구조
   // hidden: { [host]: [{ id(uuid), key, title, at }] }
-  // rules:  { [host]: containerSelector }
+  // rules:  { [host]: [containerSelector, ...] }  (구조가 다른 목록마다 선택자를 하나씩 쌓는다. 예전 버전의 문자열 값도 읽는다)
   let hiddenKeys = new Set();
-  let selector = null;
+  let selectors = [];
   let smashMode = false;
   let hoverEl = null;
   let banner = null;
@@ -95,8 +95,8 @@
 
   // ---------- 숨김 적용 ----------
   function applyAll() {
-    if (!selector) return;
-    document.querySelectorAll(selector).forEach((el) => {
+    if (!selectors.length) return;
+    document.querySelectorAll(selectors.join(",")).forEach((el) => {
       const hide = keysOf(el).some((k) => hiddenKeys.has(k));
       el.classList.toggle("ps-hidden", hide);
     });
@@ -108,10 +108,16 @@
     timer = setTimeout(applyAll, 100);
   }
 
+  // 저장된 선택자를 배열로 통일 (예전 버전은 문자열 하나만 저장했다)
+  function rulesOf(rules) {
+    const r = rules[HOST];
+    return Array.isArray(r) ? [...r] : r ? [r] : [];
+  }
+
   async function load() {
     const { hidden = {}, rules = {} } = await chrome.storage.local.get(["hidden", "rules"]);
     hiddenKeys = new Set((hidden[HOST] || []).map((h) => h.key));
-    selector = rules[HOST] || null;
+    selectors = rulesOf(rules);
     applyAll();
   }
 
@@ -124,7 +130,10 @@
       list.push({ id: crypto.randomUUID(), key, title: titleOf(container), at: Date.now() });
     }
     hidden[HOST] = list;
-    rules[HOST] = selectorFor(container);
+    const sel = selectorFor(container);
+    const cur = rulesOf(rules);
+    if (!cur.includes(sel)) cur.push(sel);
+    rules[HOST] = cur;
     await chrome.storage.local.set({ hidden, rules });
   }
 
